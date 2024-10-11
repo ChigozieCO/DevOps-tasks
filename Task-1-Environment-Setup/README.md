@@ -1,0 +1,23 @@
+# Task
+
+Set up a Windows Server environment and install the required software, including Docker and Git. Document your setup process.
+
+# Implementation
+
+This task can be performed on your local computer on a cloud platform like AWS, Azure, Google cloud, digital ocean etc, however I decided to use the AWS cloud platform as AWS is widely used in the industry and using it instead of VMWare or Virtualbox demonstrates real-world skills.
+
+Since automation is the foundation of DevOps, I made the decision to automate this configuration using Terraform for Infrastructure as Code. Writing reusable code excites me particularly since it improves consistency, scalability, and process efficiency. Teams can work more productively when infrastructure can be automated, and I get great satisfaction from developing solutions that increase productivity while preserving flexibility for unforeseen circumstances.
+
+## Terraform Script
+
+The Windows server will be setup in an EC2 instance in AWS, the EC2 instance will be located in a virtual private cloud (VPC) network on AWS and I decided against using the default VPC opting to create my own project specific VPC using the AWS VPC module.
+
+The decision to leverage on an existing module is owing to the fact that the module is tested, maintained, and reliable and so there isn't any need to reinvent the wheel for such a low level task such as VPC creation.
+
+I also used an S3 bucket and DynamoDb table to save my state file and lock file respectively. I made the decision to manually create my bucket and table via the management console in order to circumvent the two step creation process that would have been required were I to use the same Terraform script to create them where I will use them.
+
+### Provider Configuration
+
+To begin, I wrote the configuration for the provider and added my backend configuration. The code for that is seen below:
+
+```tf
