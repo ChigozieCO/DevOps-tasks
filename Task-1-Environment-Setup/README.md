@@ -20,4 +20,50 @@ I also used an S3 bucket and DynamoDb table to save my state file and lock file 
 
 To begin, I wrote the configuration for the provider and added my backend configuration. The code for that is seen below:
 
-```tf
+```hcl
+# Add provider
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+
+  # Backend configuration
+  backend "s3" {
+    bucket         = "mantix-assessment-statefile"
+    key            = "mantix/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "mantix-assessment-lockfile"
+  }
+}
+
+
+# Configure the AWS Provider
+provider "aws" {
+  region = var.region
+  shared_credentials_files = ["~/.aws/credentials"]
+}
+```
+
+### Create VPC 
+
+As I already mentioned, I made use of the [AWS VPC Module](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest) in the creation of my VPC. 
+
+Calling the module, I added all the necessary parameters.
+
+### Create Security group
+
+After the VPC configuration, I wrote the configuration for my EC2 security group. My security group allowed RDP and HTTP traffic into the server.
+
+### Create Windows Server
+
+Finally I created the windows server using the `aws_instance` resource. 
+
+I used the data block to retrieve the ami of the windows 2022 server and also to retrieve an existing key pair from my AWS account.
+
+I decided to use an existing key pair and not create the key pair directly in terraform using the `tls_private_key` resource for security purposes. The latter will cause the private key to become a part of the terraform state and create a potential of it being exposed. Whereas the formal ensures that my private key is not a part of the Terraform state file.
+
+## Install Required Software
+
