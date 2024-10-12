@@ -26,7 +26,6 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
     }
   }
 
@@ -65,5 +64,26 @@ I used the data block to retrieve the ami of the windows 2022 server and also to
 
 I decided to use an existing key pair and not create the key pair directly in terraform using the `tls_private_key` resource for security purposes. The latter will cause the private key to become a part of the terraform state and create a potential of it being exposed. Whereas the formal ensures that my private key is not a part of the Terraform state file.
 
+## Connect to the server
+
+When the server was up and running to test my setup I connected to the server using Remote Desktop Connection.
+
+I retrieve the public IP from the output of my terraform run and decrypted the password using the private key of my key pair, along with the username I was able to connect to the server.
+
+
+The image below, shows a success connection.
+
+![remote-desktop-connection-to-server](./rdp-connection.png)
+
 ## Install Required Software
+
+For a more granular control over the installation and configuration of the required software I opted to use Ansible for my server configuration instead of the `user_data` argument of terraform.
+
+While Terraform is excellent for provisioning infrastructure, Ansible excels in managing the configuration and software installation on that infrastructure.
+
+I made use of the Dynamic inventory feature of Ansible which allows you to automatically gather and manage hosts from various sources, such as cloud providers, databases, or other custom scripts.
+
+I filtered with instance-state-name and platform, to ensure I only included hosts that were windows based and were running.
+
+Here is what my dynamic inventory script looked like:
 

@@ -19,13 +19,14 @@ data "aws_key_pair" "existing_key" {
 
 # Configure a windows server
 resource "aws_instance" "windows_server" {
-  ami                    = data.aws_ami.windows_2022.id
-  instance_type          = var.instance_type
-  key_name               = data.aws_key_pair.existing_key.key_name
-  subnet_id              = module.vpc.private_subnets
-  vpc_security_group_ids = [aws_security_group.windows_sg.id]
+  ami                           = data.aws_ami.windows_2022.id
+  instance_type                 = var.instance_type
+  key_name                      = data.aws_key_pair.existing_key.key_name
+  subnet_id                     = module.vpc.public_subnets[1]
+  associate_public_ip_address   = true
+  vpc_security_group_ids        = [aws_security_group.windows_sg.id]
 
-  tags                   = {
-    Name                 = var.server_name
+  tags                          = {
+    Name                        = var.server_name
   }
 }

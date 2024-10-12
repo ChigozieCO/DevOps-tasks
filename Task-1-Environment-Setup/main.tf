@@ -3,7 +3,6 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
     }
   }
 
@@ -37,7 +36,7 @@ module "vpc" {
 }
 
 # Create a security group for the EC2 instance to allow http and rds traffic
-resource "aws_security_group" "instance_sg" {
+resource "aws_security_group" "windows_sg" {
   name        = "instance-sg"
   description = "Security group for the EC2 instance"
   vpc_id      = module.vpc.vpc_id
