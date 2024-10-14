@@ -1,0 +1,75 @@
+---
+- name: Configure Windows Server
+  hosts: aws_ec2
+  gather_facts: false
+  tasks:
+    - name: Install critical and security updates on the Windows server
+      win_updates:
+        category_names:
+          - CriticalUpdates
+          - SecurityUpdates
+      register: update_result
+
+    - name: Reboot if updates require it
+      win_reboot:
+      when: update_result.reboot_required
+
+    - name: Install Chocolatey
+      win_chocolatey:
+        name: chocolatey
+        state: present
+
+    - name: Install Chocolatey packages
+      win_chocolatey:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nodejs
+        - git
+        - python3
+        - docker-desktop
+
+    - name: Install IIS (Internet Information Services)
+      win_feature:
+        name: Web-Server
+        state: present
+        include_subfeatures: yes
+        include_management_tools: yes
+      register: iis_installation
+
+    - name: Reboot if IIS installation requires it
+      win_reboot:
+      when: iis_installation.reboot_required
+
+    - name: Install IIS Management Console
+      win_feature:
+        name: Web-Mgmt-Console
+        state: present
+        include_subfeatures: yes
+        include_management_tools: yes
+
+    - name: Open firewall port 80 for the IIS web server on Windows server
+      win_firewall_rule:
+        name: "{{ inventory_hostname }}_80"
+        enable: yes
+        state: present
+        localport: 80
+        action: Allow
+        direction: In
+        protocol: Tcp
+
+    - name: Install Windows Admin Center
+      win_chocolatey:
+        name: windows-admin-center
+        state: present
+      register: admincenter_installation
+
+    - name: Install Windows Defender
+      win_feature:
+        name: Windows-Defender
+        state: present
+      register: defender_installation
+
+    - name: Reboot if Windows Defender installation requires it
+      win_reboot:
+      when: defender_installation.reboot_required

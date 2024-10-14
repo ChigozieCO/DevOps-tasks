@@ -129,9 +129,13 @@ I had only the HTTP listener so I configured an HTTPS listener
 #### Steps I took to Configure Listener on the Windows Server
 
 - I created a self signed certificate and stored the certificate in the LocalMachine\My certificate store of the Windows server.
+
 - Once the certificate was created and stored I then created my HTTPS Listener using the Thumbprint from the certificate.
+
 - The next thing I did was to add a new firewall rule so that the windows server firewall does not block the configured WinRM listener ports.
+
 - The next step was to set the service for basic authentication to `True` on Windows server. This step was necessary in order to ensure that my authentication from Ansible to the Windows server is not to be rejected.
+
 - The last step for the windows server configuration was to verify that my listener was created and the basic authentication service was set to true.
 
 ### Configure Ansible
@@ -150,7 +154,7 @@ ansible_winrm_server_cert_validation: ignore
 ansible_winrm_transport: ssl
 ```
 
-This allowed me connect tio my server from ansible, I tested the connection using the below command:
+This allowed me connect to my server from ansible, I tested the connection using the below command:
 
 ```sh
 ansible -i windows.aws_ec2.yaml aws_ec2 -m win_ping
@@ -159,3 +163,31 @@ ansible -i windows.aws_ec2.yaml aws_ec2 -m win_ping
 From the screenshot below, you can see that the connection was established
 
 (image 7.ansible-pong.png)
+
+### Ansible Playbook to Install Software
+
+#### Steps
+- I started by installing Critical and Security Updates using the `win_updates` module.
+
+- Next I installed Chocolatey using the `win_chocolatey` module to install Chocolatey. This is a necessary step as I will be using the `win_chocolatey` module for my installations.
+
+- I then went ahead and installed Chocolatey Packages, since there are quite a number of packages to install I looped through the installation for simplicity. I used the `win_chocolatey` module to install the following:
+    - Node.js
+    - Git
+    - Python 3
+    - Visual Studio Code
+    - Docker Desktop
+    - MySQL
+    - PostgreSQL
+
+-  My next installation was the IIS (Internet Information Services) using the `win_feature` module again to install the IIS web server and its management tools. I registered the installation so I can use it to store the result of the task in a variable. This was done to capture the output (status, result, and any other relevant data) of the task and use that output in subsequent tasks.
+
+- I checked if a reboot is required after the IIS installation and performed it if necessary.
+
+- My next installation was the IIS Management Console.
+
+- Then the installation of the System Center and checking for required reboots.
+
+- I also installed Windows Admin Center:
+
+- Finally I installed Windows Defender and checked for required reboots.
