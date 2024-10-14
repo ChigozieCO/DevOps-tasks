@@ -56,6 +56,8 @@ Calling the module, I added all the necessary parameters.
 
 After the VPC configuration, I wrote the configuration for my EC2 security group. My security group allowed RDP and HTTP traffic into the server.
 
+Since I knew I was going to use Ansible for the configuration of the server, I also whitelisted the WimRm ports so that Ansible can connect to the server. I did this by adding ingress rules for port 5985 and 5986 which are the default ports of WimRm.
+
 ### Create Windows Server
 
 Finally I created the windows server using the `aws_instance` resource. 
@@ -87,3 +89,73 @@ I filtered with instance-state-name and platform, to ensure I only included host
 
 Here is what my dynamic inventory script looked like:
 
+```yml
+plugin: aws_ec2 # Use the ansible built-in dynamic inventory plugin for EC2
+regions:
+  - us-east-1      # Specify the region(s) you want to use
+filters:
+  instance-state-name: running  # Only include running instances
+  platform: windows              # Filter for Windows instances
+```
+
+To test that the dynamic inventory was getting the required hosts I tested it using the below command and from the screenshot below you can see that it successfully pulled my hosts from AWS.
+
+```sh
+ansible-inventory -i windows.aws_ec2.yaml --graph
+```
+
+### Host Requirements
+
+For Ansible to communicate with a Windows host and use Windows modules, the Windows host must meet these base requirements for connectivity:
+
+- With Ansible you can generally manage Windows versions under the current and extended support from Microsoft. You can also manage desktop OSs including Windows 10 and 11, and server OSs including Windows Server 2016, 2019, and 2022.
+
+- You need to install PowerShell 5.1 or newer and at least .NET 4.0 on the Windows host.
+
+- You need to create and activate a WinRM listener.
+
+I was able to verify that my windows server had the required Powershell and .NET Framework versions but I still need to setup the WimRM listener.
+
+### Setup Host to Accept Ansible Connection
+
+The below are the steps I took to configure HTTPS listener in windows.
+
+```powershell
+winrm e winrm/config/Listener
+```
+
+I had only the HTTP listener so I configured an HTTPS listener
+
+#### Steps I took to Configure Listener on the Windows Server
+
+- I created a self signed certificate and stored the certificate in the LocalMachine\My certificate store of the Windows server.
+- Once the certificate was created and stored I then created my HTTPS Listener using the Thumbprint from the certificate.
+- The next thing I did was to add a new firewall rule so that the windows server firewall does not block the configured WinRM listener ports.
+- The next step was to set the service for basic authentication to `True` on Windows server. This step was necessary in order to ensure that my authentication from Ansible to the Windows server is not to be rejected.
+- The last step for the windows server configuration was to verify that my listener was created and the basic authentication service was set to true.
+
+### Configure Ansible
+
+Since I have already setup my inventory using Ansible's dynamic inventory feature, I created a file to save the necessary variables that will allow Ansible connect with the windows server.
+
+I created a `group_vars` directory with an `aws_ec2.yaml` file and added the below variable to it
+
+```yml
+ansible_user: Administrator
+ansible_password: "<password>"
+ansible_port: 5986
+ansible_connection: winrm
+ansible_winrm_scheme: https
+ansible_winrm_server_cert_validation: ignore
+ansible_winrm_transport: ssl
+```
+
+This allowed me connect tio my server from ansible, I tested the connection using the below command:
+
+```sh
+ansible -i windows.aws_ec2.yaml aws_ec2 -m win_ping
+```
+
+From the screenshot below, you can see that the connection was established
+
+(image 7.ansible-pong.png)

@@ -57,6 +57,23 @@ resource "aws_security_group" "windows_sg" {
     cidr_blocks  = ["0.0.0.0/0"]
   }
 
+  # Whitelish the WinRM ports to allow ansible make connections to the windows server to conconfigure the server
+  ingress {
+    description = "Allow incoming WinRM-HTTP connections"
+    from_port   = 5985
+    to_port     = 5985
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow incoming WinRM-HTTPS connections"
+    from_port   = 5986
+    to_port     = 5986
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
