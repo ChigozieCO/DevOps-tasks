@@ -1,0 +1,55 @@
+pipeline {
+  agent any
+  
+  environment {
+    GitHubRepoUrl = 'https://github.com/ChigozieCO/assignment-02-for-individuals.git'
+  }
+
+  stages {
+    stage('Checkout Deployment repo') {
+      steps {
+        dir('deployment-repo') {  // Specify the directory for the deployment repo
+          script {
+            checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/ChigozieCO/DevOps-tasks.git']])
+            
+            // List the contents of the deployment-repo
+            powershell 'ls'
+          }
+        }
+      }
+    }
+    
+    stage('Checkout Web application repo') {
+      steps {
+        dir('web-app-repo') {  // Specify the directory for the web application repo
+          script {
+            checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/ChigozieCO/assignment-02-for-individuals.git']])
+            
+            // List the contents of the web-app-repo
+            powershell 'ls'
+          }
+        }
+      }
+    }
+    
+    stage('Run the deployment script') {
+      steps {
+        dir('deployment-repo/Task-2-Scripting-and-Automation') {  // Navigate to the directory where the script is located
+          powershell './powershell-deployment.ps1'
+        }
+      }
+    }
+  }
+  
+  post {
+    always {
+      echo 'Pipeline completed.'
+    }
+    success {
+      echo 'Deployment completed successfully.'
+    }
+    failure {
+      echo 'Deployment failed.'
+    }
+  }
+}

@@ -179,12 +179,8 @@ From the screenshot below, you can see that the connection was established
 
 -  My next installation was the IIS (Internet Information Services) using the `win_feature` module again to install the IIS web server and its management tools. I registered the installation so I can use it to store the result of the task in a variable. This was done to capture the output (status, result, and any other relevant data) of the task and use that output in subsequent tasks.
 
-- I checked if a reboot is required after the IIS installation and performed it if necessary.
-
 - My next installation was the IIS Management Console.
-
-- Then the installation of the System Center and checking for required reboots.
 
 - I also installed Windows Admin Center:
 
-- Finally I installed Windows Defender and checked for required reboots.
+- Finally I installed Windows Defender.
