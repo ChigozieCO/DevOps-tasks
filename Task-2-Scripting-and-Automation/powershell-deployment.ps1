@@ -37,9 +37,8 @@ $softwareList = @(
       # Start the installation process
       Start-Process -FilePath $gitInstallerPath -ArgumentList "/VERYSILENT", "/NORESTART" -Wait
       
-      # Optionally, update the system PATH
-      $gitInstallDir = "C:\Program Files\Git\cmd"
-      [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";$gitInstallDir", "Machine")
+      # Refresh the environment to make the 'git' command available
+      $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
     }
   },
   @{

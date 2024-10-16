@@ -175,10 +175,7 @@ From the screenshot below, you can see that the connection was established
     - Node.js
     - Git
     - Python 3
-    - Visual Studio Code
     - Docker Desktop
-    - MySQL
-    - PostgreSQL
 
 -  My next installation was the IIS (Internet Information Services) using the `win_feature` module again to install the IIS web server and its management tools. I registered the installation so I can use it to store the result of the task in a variable. This was done to capture the output (status, result, and any other relevant data) of the task and use that output in subsequent tasks.
 
