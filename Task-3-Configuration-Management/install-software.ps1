@@ -1,4 +1,4 @@
-# Check if packages are provided as arguments and notify user to pass some if it isn't
+# Check if packages are provided as arguments and notify the user to pass some if they aren't
 if ($args.Count -eq 0) {
   Write-Host "Usage: ./install_software.ps1 <package1> <package2> ..." -ForegroundColor Yellow
   Write-Host "Please provide the list of packages to install or upgrade as arguments." -ForegroundColor Yellow
@@ -17,7 +17,7 @@ if (-not $isAdmin) {
   return
 }
 
-# Function to install Chocolatey and restart the shell session so that chocoltey can be used to install applications
+# Function to install Chocolatey and restart the shell session so that Chocolatey can be used to install applications
 function Install-Chocolatey {
   Write-Host "================================================" -ForegroundColor Green
   Write-Host "Chocolatey is not installed." -ForegroundColor Green
@@ -28,15 +28,11 @@ function Install-Chocolatey {
   Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
   Write-Host "================================================" -ForegroundColor Green
   Write-Host "Chocolatey installation completed." -ForegroundColor Green
-  Write-Host "Restarting shell..." -ForegroundColor Green
+  Write-Host "Reloading shell......" -ForegroundColor Green
   Write-Host "================================================" -ForegroundColor Green
 
-  # Restart the shell
-  $newProcess = New-Object System.Diagnostics.ProcessStartInfo
-  $newProcess.FileName = "powershell.exe"
-  $newProcess.Arguments = "-NoExit -Command `"& {$($MyInvocation.ScriptName) $($args)}`""
-  [System.Diagnostics.Process]::Start($newProcess) | Out-Null
-  exit
+  # Reload the current shell session
+  $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
 }
 
 # Check if Chocolatey is installed
@@ -50,59 +46,33 @@ if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
   }
 }
 
-# Keep a list of the applications that were successfully installed or upgraded and those that failed, to update the user at the end of the script run
-
-$installedPackages = @()
-$failedPackages = @()
-
+# Loop through each package provided as arguments
 foreach ($package in $packages) {
   Write-Host "================================================" -ForegroundColor Green
-  Write-Host "Installing package: $package" -ForegroundColor Green
+  Write-Host "Processing package: $package" -ForegroundColor Green
   Write-Host "================================================" -ForegroundColor Green
 
-  try {
-    # Check if the package is already installed
-    $installedPackage = choco list --local-only | Select-String $package
+  # Check if the package is already installed
+  $installedPackage = choco list --local-only | Select-String $package
 
-    if ($installedPackage) {
-      # If installed, upgrade the package
-      Write-Host "Upgrading $package..."
-      choco upgrade $package -y
-      $installedPackages += $package
-    }
-    else {
-      # If not installed, install the package
-      Write-Host "Installing $package..."
-      choco install $package -y
-      $installedPackages += $package
-    }
-}
-catch {
-  $failedPackages += @{
-      Package = $package
-      Reason  = $_.Exception.Message
+  if ($installedPackage) {
+    # If installed, upgrade the package
+    Write-Host "Upgrading $package..."
+    choco upgrade $package -y
+  } else {
+    # If not installed, install the package
+    Write-Host "Installing $package..."
+    choco install $package -y
   }
-}
 
-  Write-Host "================================================" -ForegroundColor Green
-  Write-Host "$package sucessfully installed." -ForegroundColor Green
-  Write-Host "================================================" -ForegroundColor Green
-}
-
-# List the successfully installed or upgraded Application
-Write-Host "================================================" -ForegroundColor Green
-Write-Host "Applications installed or upgraded:" -ForegroundColor Green
-Write-Host "================================================" -ForegroundColor Green
-$installedPackages | ForEach-Object { Write-Host $_ -ForegroundColor Green }
-
-# List the Applications that failed to install or upgrade
-if ($failedPackages.Count -gt 0) {
-  Write-Host "================================================" -ForegroundColor Red
-  Write-Host "Applications that failed to install or upgrade:" -ForegroundColor Red
-  Write-Host "================================================" -ForegroundColor Red
-  $failedPackages | ForEach-Object {
-      Write-Host "Package: $($_.Package)" -ForegroundColor Red
-      Write-Host "Reason: $($_.Reason)" -ForegroundColor Red
-      Write-Host ""
+  # Confirmation message for successful or failed installation or upgrade
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "================================================" -ForegroundColor Green
+    Write-Host "$package was successfully installed or upgraded." -ForegroundColor Green
+    Write-Host "================================================" -ForegroundColor Green
+  } else {
+    Write-Host "================================================" -ForegroundColor Red
+    Write-Host "Failed to install or upgrade $package." -ForegroundColor Red
+    Write-Host "================================================" -ForegroundColor Red
   }
 }

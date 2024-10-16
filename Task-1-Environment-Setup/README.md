@@ -162,7 +162,7 @@ ansible -i windows.aws_ec2.yaml aws_ec2 -m win_ping
 
 From the screenshot below, you can see that the connection was established
 
-(image 7.ansible-pong.png)
+[ansible-connected-with-host](7.ansible-pong.png)
 
 ### Ansible Playbook to Install Software
 
@@ -184,3 +184,13 @@ From the screenshot below, you can see that the connection was established
 - I also installed Windows Admin Center:
 
 - Finally I installed Windows Defender.
+
+- Snapshots below show successful ansible playbook run:
+
+![ansible-play-1](11.ansible-play-1.png)
+
+![ansible-play-2](12.ansible-play-2.png)
+
+![ansible-replay](13.ansible-replay.png)
+
+![IIS-default-page](8.IIS-default-page.png)
